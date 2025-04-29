@@ -57,7 +57,11 @@ class KS_solver:
         if hubbard:
             print('Hubbard occupancy: ', self.hubbard_occ)
 
-        print(self.ham.eigvals)
+        print("Energy eigenvalues")
+        for i in range(n_electrons):
+            print('Occupancy: 1.0      Energy : ', self.ham.eigvals[i])
+        for i in range(n_electrons + 1, n_electrons + 5):
+            print('Occupancy: 0.0      Energy : ', self.ham.eigvals[i])
 
         # Plot charge density
         plot_density(self.rho)
