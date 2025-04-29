@@ -14,7 +14,7 @@ class KS_solver:
     def self_consistent_loop(self):
 
         for i in range(max_iter):
-            print('Iteration #' + str(i + 1))
+            print('\n Iteration #' + str(i + 1))
 
             self.ham.solve() # Solve KS equations and calculate new density
             rho_new = mixing_beta * self.ham.rho + (1 - mixing_beta) * self.rho  # Mixing
@@ -34,7 +34,7 @@ class KS_solver:
             delta = np.linalg.norm(rho_new - self.rho)
             print("Convergence delta: ", delta)
             if delta < tol:
-                print('Calculation converged!')
+                print('\n ######  Calculation converged!  ###### \n')
                 self.end_calculation()
                 break
 
