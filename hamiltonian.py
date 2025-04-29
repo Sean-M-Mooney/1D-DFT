@@ -5,6 +5,8 @@ from density import fourier_trans_density, calculate_density, initial_density
 from scipy.linalg import eigh
 from hubbard import perturbation_matrix
 
+#This class calculates, stores and solves the Hamiltonian matrix. The external potential is also defined here in external_potential().
+
 
 class Hamiltonian:
     def __init__(self):
