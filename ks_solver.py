@@ -4,6 +4,8 @@ from hamiltonian import Hamiltonian
 from plotting import plot_density
 from hubbard import occupancy_matrix
 
+# This module handles the self consistency loop and printouts during and after the calculation
+
 
 class KS_solver:
     def __init__(self, hamiltonian: Hamiltonian):
