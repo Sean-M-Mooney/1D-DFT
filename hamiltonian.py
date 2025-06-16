@@ -121,6 +121,7 @@ class Hamiltonian:
         for i in range(N_basis + 1):
             if i != int(N_basis/2):
                 E_har += (0.5 * abs(rho_ft[i + int(N_basis/2)])**2) / (2 * np.pi * (i - int(N_basis/2)) / L)**2
+        print('Hartree energy: ', E_har)
         total_energy += E_har
 
         # Exchange contribution
