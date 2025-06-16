@@ -1,10 +1,10 @@
 import numpy as np
 from config import n_electrons, mixing_beta, x, max_iter, tol, normalization_tolerance, write_proj, hubbard, write_dens
 from hamiltonian import Hamiltonian
-from plotting import plot_density
+from plotting import plot_density, plot_potential
 from hubbard import occupancy_matrix
 
-# This module handles the self consistency loop and printouts during and after the calculation
+# This module handles the self-consistency loop and printouts during and after the calculation
 
 
 class KS_solver:
@@ -66,4 +66,5 @@ class KS_solver:
             print('Occupancy: 0.0      Energy : ', self.ham.eigvals[i])
 
         # Plot charge density
+        plot_potential(self.ham.v_ext)
         plot_density(self.rho)

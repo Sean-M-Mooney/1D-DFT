@@ -16,6 +16,8 @@ n_electrons = 12  # Number of electrons
 x = np.linspace(-L/2, L/2, n_grid_points)  # Real-space grid
 alpha = 0
 n_projectors = 1
+A = 1
+k = 1
 
 # Modes
 write_dens = False
