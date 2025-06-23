@@ -1,5 +1,5 @@
 import numpy as np
-from config import n_grid_points, N_basis, L, x, n_electrons, hubbard, A, k
+from config import n_grid_points, N_basis, L, x, n_electrons, hubbard, A, k, ewald_sums
 from basis import basis
 from density import fourier_trans_density, calculate_density, initial_density
 from scipy.linalg import eigh
@@ -20,6 +20,9 @@ class Hamiltonian:
         self.V = self.potential_matrix(self.v_ext)
         self.HAR = self.hartree_matrix()
         self.X = self.exchange_matrix(self.v_x)
+
+        self.tot_energy = self.total_energy()
+
         if hubbard:
             self.p_v = perturbation_matrix()
 
@@ -59,7 +62,7 @@ class Hamiltonian:
         #v_ext = np.zeros(n_grid_points)
         center = x[100 * int(n_grid_points / 200)]
         width = 12
-        v_ext = -60 * np.exp(-((x - center) ** 2) / (2 * width ** 2))
+        v_ext = -20 * np.exp(-((x - center) ** 2) / (2 * width ** 2))
         plot_potential(v_ext)
         return v_ext
 
@@ -81,7 +84,9 @@ class Hamiltonian:
         return H_q
 
     def v_ee(self, r):
-        v_ee = A * np.exp(-k * np.abs(r))
+        v_ee = 0
+        for i in range(-ewald_sums, ewald_sums + 1):
+            v_ee += A * np.exp(-k * np.abs(r))
         return v_ee
 
     def hartree_potential(self) -> np.ndarray:
@@ -121,7 +126,7 @@ class Hamiltonian:
         total_energy += E_ext
 
         # Hartree component
-        E_har = np.trapezoid(self.v_har * self.rho, x)
+        E_har = 0.5 * np.trapezoid(self.v_har * self.rho, x)
         print('Harte energy: ', E_har)
         total_energy += E_har
 

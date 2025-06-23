@@ -35,10 +35,18 @@ class KS_solver:
             # Check convergence
             delta = np.linalg.norm(rho_new - self.rho)
             print("Convergence delta: ", delta)
+
             if delta < tol:
                 print('\n ######  Calculation converged!  ###### \n')
                 self.end_calculation()
                 break
+
+            total_energy = self.ham.total_energy()
+            energy_gradient = total_energy - self.ham.tot_energy
+            if energy_gradient > 0:
+                print('Warning: Energy gradient positive')
+            print('Total energy gradient: ', energy_gradient)
+            self.ham.tot_energy = total_energy
 
             self.rho = rho_new
             self.ham.update_hamiltonian(self.rho)
@@ -66,5 +74,4 @@ class KS_solver:
             print('Occupancy: 0.0      Energy : ', self.ham.eigvals[i])
 
         # Plot charge density
-        plot_potential(self.ham.v_ext)
         plot_density(self.rho)
