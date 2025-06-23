@@ -1,10 +1,10 @@
 import numpy as np
 from config import n_electrons, mixing_beta, x, max_iter, tol, normalization_tolerance, write_proj, hubbard, write_dens
 from hamiltonian import Hamiltonian
-from plotting import plot_density
+from plotting import plot_density, plot_potential
 from hubbard import occupancy_matrix
 
-# This module handles the self consistency loop and printouts during and after the calculation
+# This module handles the self-consistency loop and printouts during and after the calculation
 
 
 class KS_solver:
@@ -35,10 +35,18 @@ class KS_solver:
             # Check convergence
             delta = np.linalg.norm(rho_new - self.rho)
             print("Convergence delta: ", delta)
+
             if delta < tol:
                 print('\n ######  Calculation converged!  ###### \n')
                 self.end_calculation()
                 break
+
+            total_energy = self.ham.total_energy()
+            energy_gradient = total_energy - self.ham.tot_energy
+            if energy_gradient > 0:
+                print('Warning: Energy gradient positive')
+            print('Total energy gradient: ', energy_gradient)
+            self.ham.tot_energy = total_energy
 
             self.rho = rho_new
             self.ham.update_hamiltonian(self.rho)

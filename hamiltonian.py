@@ -1,9 +1,10 @@
 import numpy as np
-from config import n_grid_points, N_basis, L, x, n_electrons, hubbard
+from config import n_grid_points, N_basis, L, x, n_electrons, hubbard, A, k, ewald_sums
 from basis import basis
 from density import fourier_trans_density, calculate_density, initial_density
 from scipy.linalg import eigh
 from hubbard import perturbation_matrix
+from plotting import plot_potential
 
 #This class calculates, stores and solves the Hamiltonian matrix. The external potential is also defined here in external_potential().
 
@@ -13,11 +14,15 @@ class Hamiltonian:
         self.rho = initial_density()
         self.v_ext = self.external_potential()
         self.v_x = self.exchange_potential()
+        self.v_har = self.hartree_potential()
 
         self.T = self.kinetic_energy_matrix()
         self.V = self.potential_matrix(self.v_ext)
         self.HAR = self.hartree_matrix()
         self.X = self.exchange_matrix(self.v_x)
+
+        self.tot_energy = self.total_energy()
+
         if hubbard:
             self.p_v = perturbation_matrix()
 
@@ -30,6 +35,7 @@ class Hamiltonian:
     def update_hamiltonian(self, new_rho: np.ndarray):
         self.rho = new_rho
         self.v_x = self.exchange_potential()
+        self.v_har = self.hartree_potential()
 
         self.HAR = self.hartree_matrix()
         self.X = self.exchange_matrix(self.v_x)
@@ -54,9 +60,10 @@ class Hamiltonian:
     # Compute the external potential across the real space grid
     def external_potential(self):
         #v_ext = np.zeros(n_grid_points)
-        center = x[104 * int(n_grid_points / 200)]
+        center = x[100 * int(n_grid_points / 200)]
         width = 12
-        v_ext = -60 * np.exp(-((x - center) ** 2) / (2 * width ** 2))
+        v_ext = -20 * np.exp(-((x - center) ** 2) / (2 * width ** 2))
+        plot_potential(v_ext)
         return v_ext
 
     # External potential matrix
@@ -67,25 +74,28 @@ class Hamiltonian:
                 V_q[i, j] = np.trapezoid(np.conjugate(basis[i]) * v_ext * basis[j], x)
         return V_q
 
-
-    def fourier_trans_density(self) -> np.ndarray:
-        rho_ft = np.zeros(2 * N_basis + 1, dtype=complex)
-        for k in range(int(-N_basis), int(N_basis) + 1):
-            rho_ft[N_basis + k] = (1/L) * np.trapezoid(np.exp(-1j * 2 * np.pi * k * x / L) * self.rho, x)
-        return rho_ft
-
     # Hartree potential matrix
     def hartree_matrix(self) -> np.ndarray:
-        rho_ft = fourier_trans_density(self.rho)
         H_q = np.zeros((N_basis + 1, N_basis + 1), dtype=complex)
         for i in range(N_basis + 1):
             for j in range(N_basis + 1):
-                if i != j:
-                    H_q[j][i] = (rho_ft[N_basis + j - i]) / ((2 * (np.pi / L) * (j - i)) ** 2)
-                else:
-                    H_q[j][i] = 0
+                H_q[i, j] = np.trapezoid(np.conjugate(basis[i]) * self.v_har * basis[j], x)
 
         return H_q
+
+    def v_ee(self, r):
+        v_ee = 0
+        for i in range(-ewald_sums, ewald_sums + 1):
+            v_ee += A * np.exp(-k * np.abs(r + i * L))
+        return v_ee
+
+    def hartree_potential(self) -> np.ndarray:
+        v_har = np.zeros_like(self.rho)
+        for i in range(n_grid_points):
+            r = x - x[i]
+            v_har[i] = np.trapezoid(self.rho * self.v_ee(r), x)
+
+        return v_har
 
     # Compute the exchange potential across the real space grid
     def exchange_potential(self) -> np.ndarray:
@@ -116,12 +126,8 @@ class Hamiltonian:
         total_energy += E_ext
 
         # Hartree component
-        E_har = 0
-        rho_ft = fourier_trans_density(self.rho)
-        for i in range(N_basis + 1):
-            if i != int(N_basis/2):
-                E_har += (0.5 * abs(rho_ft[i + int(N_basis/2)])**2) / (2 * np.pi * (i - int(N_basis/2)) / L)**2
-        print('Hartree energy: ', E_har)
+        E_har = 0.5 * np.trapezoid(self.v_har * self.rho, x)
+        print('Hartee energy: ', E_har)
         total_energy += E_har
 
         # Exchange contribution
