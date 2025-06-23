@@ -86,7 +86,7 @@ class Hamiltonian:
     def v_ee(self, r):
         v_ee = 0
         for i in range(-ewald_sums, ewald_sums + 1):
-            v_ee += A * np.exp(-k * np.abs(r))
+            v_ee += A * np.exp(-k * np.abs(r + i * L))
         return v_ee
 
     def hartree_potential(self) -> np.ndarray:
@@ -127,7 +127,7 @@ class Hamiltonian:
 
         # Hartree component
         E_har = 0.5 * np.trapezoid(self.v_har * self.rho, x)
-        print('Harte energy: ', E_har)
+        print('Hartee energy: ', E_har)
         total_energy += E_har
 
         # Exchange contribution
